@@ -1,6 +1,11 @@
 ; Rnote Inno-Setup Installer Script
 
-#define MyAppName @APP_NAME_CAPITALIZED@
+; Unofficial aarch64 build (fork: github.com/sci42/rnote-win-arm64).
+; The name carries an "(ARM64)" suffix so this build can be installed next to an
+; official x86_64 installation: the name feeds DefaultDirName, the start menu and
+; desktop shortcut, and - via MyAppAssocKey - the .rnote ProgId, all of which would
+; otherwise collide and overwrite each other.
+#define MyAppName @APP_NAME_CAPITALIZED@ + " (ARM64)"
 #define MyAppVersion @APP_VERSION@
 #define MyAppPublisher @APP_AUTHOR_NAME@
 #define MyAppURL @APP_WEBSITE@
@@ -19,7 +24,9 @@
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{14CA6E6F-6384-467B-B139-D6305C0F4431}
+; Deliberately NOT the upstream AppId: a separate id gives this build its own
+; uninstall entry instead of silently upgrading over an official installation.
+AppId={{67206B1D-CF20-45AC-8570-2DA9B6AB4982}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
