@@ -97,6 +97,19 @@ prerequisites-win:
     rustup toolchain install stable-gnu
     rustup default stable-gnu
 
+# in MSYS2 CLANGARM64 shell (Windows on ARM). Expects rustup to be installed already.
+# Kept separate from `prerequisites-win` so that recipe stays identical to upstream.
+prerequisites-win-arm64 rust_toolchain="stable":
+    pacman -S --needed --noconfirm \
+        unzip git mingw-w64-clang-aarch64-python3 mingw-w64-clang-aarch64-xz \
+        mingw-w64-clang-aarch64-openssl mingw-w64-clang-aarch64-pkgconf \
+        mingw-w64-clang-aarch64-toolchain mingw-w64-clang-aarch64-autotools \
+        mingw-w64-clang-aarch64-make mingw-w64-clang-aarch64-cmake mingw-w64-clang-aarch64-meson \
+        mingw-w64-clang-aarch64-diffutils mingw-w64-clang-aarch64-desktop-file-utils mingw-w64-clang-aarch64-appstream \
+        mingw-w64-clang-aarch64-gtk4 mingw-w64-clang-aarch64-libadwaita mingw-w64-clang-aarch64-angleproject
+    rustup toolchain install {{ rust_toolchain }}-aarch64-pc-windows-gnullvm
+    rustup default {{ rust_toolchain }}-aarch64-pc-windows-gnullvm
+
 setup-dev *MESON_ARGS:
     meson setup \
         --prefix=/usr \

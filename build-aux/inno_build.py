@@ -3,6 +3,7 @@
 import glob
 import itertools
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -50,40 +51,64 @@ if os.path.exists(dlls_dir):
 
 os.mkdir(dlls_dir)
 
-# Don't use os.path.join here, because that uses the wrong separators which breaks wildcard expansion.
-run_command(
-    f"ldd {build_root}/{ui_output} | grep '\\/ucrt64.*\\.dll' -o | xargs -i cp {{}} {dlls_dir}",
-    "Collecting app DLLs failed"
-)
+env_bin_dir = f"{build_environment_path}/bin"
+objdump = shutil.which("objdump") or shutil.which("llvm-objdump")
+if objdump is None:
+    print("Neither objdump nor llvm-objdump found", file=sys.stderr)
+    sys.exit(1)
+
+
+def collect_dependencies(binary, out_dir):
+    """Copy every DLL from the build environment that `binary` needs, transitively.
+
+    Reads the PE import table with objdump instead of using `ldd`, which works independently of the
+    msys environment name (ucrt64, clangarm64, ..) and does not load the binary - `ldd` hangs on
+    ANGLE's libGLESv2.dll on Windows on ARM.
+    DLLs that are not part of the build environment are system DLLs and are not packaged.
+    """
+    seen = set()
+    queue = [binary]
+
+    while queue:
+        current = queue.pop()
+        result = subprocess.run([objdump, "-p", current], capture_output=True, text=True, errors="replace")
+        if result.returncode != 0:
+            print(f"Reading imports of {current} failed", file=sys.stderr)
+            sys.exit(1)
+
+        for name in re.findall(r"DLL Name:\s*(\S+)", result.stdout):
+            if name.lower() in seen:
+                continue
+            seen.add(name.lower())
+
+            candidate = os.path.join(env_bin_dir, name)
+            if os.path.exists(candidate):
+                shutil.copy(candidate, out_dir)
+                queue.append(candidate)
+
+
+collect_dependencies(f"{build_root}/{ui_output}", dlls_dir)
 
 for loader in glob.glob(f"{build_environment_path}/lib/gdk-pixbuf-2.0/2.10.0/loaders/*.dll"):
-    run_command(
-        f"ldd {loader} | grep '\\/ucrt64.*\\.dll' -o | xargs -i cp {{}} {dlls_dir}",
-        f"Collecting pixbuf-loader ({loader}) DLLs failed"
-    )
+    collect_dependencies(loader, dlls_dir)
 
+# ANGLE is loaded at runtime, so it is not in any import table above
 for angle_dll in itertools.chain(
-    glob.glob(f"{build_environment_path}/bin/libEGL*.dll"),
-    glob.glob(f"{build_environment_path}/bin/libGLES*.dll"),
+    glob.glob(f"{env_bin_dir}/libEGL*.dll"),
+    glob.glob(f"{env_bin_dir}/libGLES*.dll"),
 ):
-    run_command(
-        f"cp {angle_dll} {dlls_dir}",
-        f"Collecting angle ({angle_dll}) DLLs failed",
-    )
-    run_command(
-        f"ldd {angle_dll} | grep '\\/ucrt64.*\\.dll' -o | xargs -i cp {{}} {dlls_dir}",
-        f"Collecting angle dependency ({angle_dll}) DLLs failed",
-    )
+    shutil.copy(angle_dll, dlls_dir)
+    collect_dependencies(angle_dll, dlls_dir)
 
-# add libcrypto-3-x64.dll and libssl-3-x64.dll
-run_command(
-    f"cp {build_environment_path}/bin/libcrypto-3-x64.dll {dlls_dir}",
-    "Collecting libcrypto-3-x64.dll failed",
-)
-run_command(
-    f"cp {build_environment_path}/bin/libssl-3-x64.dll {dlls_dir}",
-    "Collecting libssl-3-x64.dll failed",
-)
+# openssl is loaded at runtime as well. The file names carry the architecture
+# (libcrypto-3-x64.dll, libcrypto-3-arm64.dll)
+for openssl_pattern in ("libcrypto-3-*.dll", "libssl-3-*.dll"):
+    matches = glob.glob(f"{env_bin_dir}/{openssl_pattern}")
+    if not matches:
+        print(f"No openssl dll matching {openssl_pattern} found", file=sys.stderr)
+        sys.exit(1)
+    for openssl_dll in matches:
+        shutil.copy(openssl_dll, dlls_dir)
 
 # Collect necessary GSchema Xml's and compile them into a `gschemas.compiled`
 print("Collecting and compiling GSchemas...", file=sys.stderr)
