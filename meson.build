@@ -254,6 +254,12 @@ if build_ui == true
     inno_script_conf.set_quoted('APP_DONATE_URL', app_donate_url)
     inno_script_conf.set_quoted('UI_OUTPUT', ui_output)
     inno_script_conf.set_quoted('INSTALLER_NAME', win_installer_name)
+    # Inno-Setup architecture identifier of the build target
+    if host_machine.cpu_family() == 'aarch64'
+        inno_script_conf.set('INNO_ARCH', 'arm64')
+    else
+        inno_script_conf.set('INNO_ARCH', 'x64compatible')
+    endif
 
     inno_script = configure_file(
         input: 'build-aux/rnote_inno.iss.in',
