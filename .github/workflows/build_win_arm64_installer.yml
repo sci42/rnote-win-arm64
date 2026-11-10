@@ -6,6 +6,8 @@
 name: Build Windows ARM64 Installer
 
 "on":
+  push:
+    branches: [arm64-upstream]
   release:
     types: [published]
   workflow_dispatch:
