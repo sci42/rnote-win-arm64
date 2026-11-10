@@ -8,6 +8,12 @@ name: Build Windows ARM64 Installer
 "on":
   push:
     branches: [arm64-upstream]
+    # documentation-only changes don't need a new installer
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "misc/**"
+      - "LICENSE"
   release:
     types: [published]
   workflow_dispatch:
