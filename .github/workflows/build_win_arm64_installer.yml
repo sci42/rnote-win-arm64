@@ -49,6 +49,8 @@ jobs:
         with:
           release: false
           update: true
+          # saving the package cache fails on the ARM runner (paccache exit code 4)
+          cache: false
           msystem: CLANGARM64
           install: |
             just
