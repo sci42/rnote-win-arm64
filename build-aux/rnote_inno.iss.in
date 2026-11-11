@@ -2,7 +2,7 @@
 
 ; Unofficial aarch64 build (fork github.com/sci42/rnote-win-arm64): the "(ARM64)" suffix keeps the install dir,
 ; shortcuts and the .rnote ProgId apart from an official x86_64 installation.
-#define MyAppName @APP_NAME_CAPITALIZED@ + " (ARM64)"
+#define MyAppName @APP_NAME_CAPITALIZED@ + " (ARM64 experimental)"
 #define MyAppVersion @APP_VERSION@
 #define MyAppPublisher @APP_AUTHOR_NAME@
 #define MyAppURL @APP_WEBSITE@
@@ -22,7 +22,7 @@
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 ; Not the upstream AppId, so this build gets its own uninstall entry instead of upgrading over an official installation.
-AppId={{67206B1D-CF20-45AC-8570-2DA9B6AB4982}
+AppId={{60FC157D-A7D1-4E3C-B4F3-43C7C26B1436}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
