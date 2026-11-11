@@ -2,12 +2,19 @@
 
 # Unofficial native Windows on ARM (aarch64) installer, fork-only.
 # Mirrors build_win_installer.yml, but builds in the MSYS2 CLANGARM64 environment on an ARM runner.
+#
+# EXPERIMENTAL variant: replaces GTK from MSYS2 with a patched GTK (native window frame on Windows,
+# no black borders with Vulkan), built from the commit below.
 
-name: Build Windows ARM64 Installer
+name: Build Windows ARM64 Installer (experimental GTK)
+
+env:
+  GTK_REPO: https://gitlab.gnome.org/sci42/gtk.git
+  GTK_COMMIT: 946348879847887c852f321e3c05b1f824718382
 
 "on":
   push:
-    branches: [arm64-upstream]
+    branches: [experimental/gtk-native-frame]
     # documentation-only changes don't need a new installer
     paths-ignore:
       - "**.md"
@@ -48,7 +55,7 @@ jobs:
         shell: bash
         run: |
           echo "name=rnote-win-installer-$(echo ${GITHUB_REF_NAME#v} \
-            | sed -e 's/[^A-Za-z0-9._-]/_/g')-aarch64" >> $GITHUB_OUTPUT
+            | sed -e 's/[^A-Za-z0-9._-]/_/g')-aarch64-experimental-gtk" >> $GITHUB_OUTPUT
 
       - name: Setup MSYS2
         uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884
@@ -78,6 +85,23 @@ jobs:
       - name: Prerequisites
         run: just ci=true prerequisites-win-arm64 1.99
 
+      # Installed over the GTK package from MSYS2, so the installer picks up the patched libgtk
+      - name: Build patched GTK
+        run: |
+          pacman -S --needed --noconfirm mingw-w64-clang-aarch64-shaderc mingw-w64-clang-aarch64-vulkan-headers
+          gtk_dir="$(cygpath -u "$RUNNER_TEMP")/gtk"
+          git clone --filter=blob:none "$GTK_REPO" "$gtk_dir"
+          cd "$gtk_dir"
+          git checkout --detach "$GTK_COMMIT"
+          meson setup _build \
+            --prefix="$(cygpath -m "$MSYSTEM_PREFIX")" \
+            --buildtype=release \
+            -Dintrospection=disabled -Ddocumentation=false -Dman-pages=false \
+            -Dbuild-demos=false -Dbuild-examples=false -Dbuild-tests=false -Dbuild-testsuite=false \
+            -Dmedia-gstreamer=disabled -Dvulkan=enabled
+          ninja -C _build
+          meson install -C _build --quiet
+
       - name: Setup
         run: |
           just ci=true msys_env_prefix_path="$(cygpath -m "$MSYSTEM_PREFIX")" \
@@ -92,7 +116,7 @@ jobs:
       - name: Upload installer (workflow artifact)
         uses: actions/upload-artifact@v7
         with:
-          name: rnote-win-arm64-installer-artifact
+          name: rnote-win-arm64-experimental-gtk-installer-artifact
           path: _mesonbuild/${{ steps.set_installer_name.outputs.name }}.exe
           if-no-files-found: error
 
