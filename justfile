@@ -101,7 +101,7 @@ prerequisites-win:
 # Kept separate from `prerequisites-win` so that recipe stays identical to upstream.
 prerequisites-win-arm64 rust_toolchain="stable":
     pacman -S --needed --noconfirm \
-        unzip git mingw-w64-clang-aarch64-python3 mingw-w64-clang-aarch64-xz \
+        unzip git mingw-w64-clang-aarch64-python mingw-w64-clang-aarch64-xz \
         mingw-w64-clang-aarch64-openssl mingw-w64-clang-aarch64-pkgconf \
         mingw-w64-clang-aarch64-toolchain mingw-w64-clang-aarch64-autotools \
         mingw-w64-clang-aarch64-make mingw-w64-clang-aarch64-cmake mingw-w64-clang-aarch64-meson \
