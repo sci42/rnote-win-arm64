@@ -101,8 +101,8 @@ for angle_dll in itertools.chain(
     collect_dependencies(angle_dll, dlls_dir)
 
 # openssl is loaded at runtime as well. The file names carry the architecture
-# (libcrypto-3-x64.dll, libcrypto-3-arm64.dll)
-for openssl_pattern in ("libcrypto-3-*.dll", "libssl-3-*.dll"):
+# and the openssl major version (libcrypto-3-x64.dll, libcrypto-4-arm64.dll)
+for openssl_pattern in ("libcrypto-*-*.dll", "libssl-*-*.dll"):
     matches = glob.glob(f"{env_bin_dir}/{openssl_pattern}")
     if not matches:
         print(f"No openssl dll matching {openssl_pattern} found", file=sys.stderr)
