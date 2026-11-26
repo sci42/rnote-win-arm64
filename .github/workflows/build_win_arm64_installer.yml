@@ -10,7 +10,7 @@ name: Build Windows ARM64 Installer (experimental GTK)
 
 env:
   GTK_REPO: https://gitlab.gnome.org/sci42/gtk.git
-  GTK_COMMIT: e0e34ab3abd35c532ca09cac546775e037bcfea2
+  GTK_COMMIT: b58190aaceff5c0e1a48a17ff70ce38ea6245cd9
 
 "on":
   push:
@@ -88,7 +88,7 @@ jobs:
       # Installed over the GTK package from MSYS2, so the installer picks up the patched libgtk
       - name: Build patched GTK
         run: |
-          pacman -S --needed --noconfirm mingw-w64-clang-aarch64-shaderc mingw-w64-clang-aarch64-vulkan-headers
+          pacman -S --needed --noconfirm mingw-w64-clang-aarch64-shaderc mingw-w64-clang-aarch64-vulkan-headers mingw-w64-clang-aarch64-sassc
           gtk_dir="$(cygpath -u "$RUNNER_TEMP")/gtk"
           git clone --filter=blob:none "$GTK_REPO" "$gtk_dir"
           cd "$gtk_dir"
