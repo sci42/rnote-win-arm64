@@ -10,7 +10,7 @@ name: Build Windows ARM64 Installer (experimental GTK)
 
 env:
   GTK_REPO: https://gitlab.gnome.org/sci42/gtk.git
-  GTK_COMMIT: b58190aaceff5c0e1a48a17ff70ce38ea6245cd9
+  GTK_COMMIT: e34b0303e297592615309e8753a1a5167d35722d
 
 "on":
   push:
